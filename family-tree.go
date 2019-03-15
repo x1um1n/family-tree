@@ -5,10 +5,11 @@ import (
     "github.com/x1um1n/checkerr"
     "log"
     "bytes"
+    "strings"
     "io"
+    "io/ioutil"
     "net/http"
     "gopkg.in/yaml.v2"
-    "io/ioutil"
     "html/template"
     "database/sql"
     _ "github.com/go-sql-driver/mysql"
@@ -35,12 +36,25 @@ type Person struct {
 }
 
 var family []Person
+var familyDB sql.DB
 
 // initialise db
-func initDB()  {
-    db, err := sql.Open("mysql", "dbuser:dbpassword@tcp(127.0.0.1:3306)/test")
+func initDB(db *sql.DB)  {
+    log.Println("gonna init the db now")
+    db, err := sql.Open("mysql", "dbuser:dbpassword@tcp(127.0.0.1:3306)/family-tree")
     checkerr.CheckFatal(err, "error connecting to DB")
     defer db.Close()
+}
+
+// create db structure
+func createDB(db *sql.DB)  {
+    log.Println("reading create.sql")
+    f, err := ioutil.ReadFile("scripts/sql/create.sql")
+    checkerr.Check(err, "error reading create.sql")
+
+    log.Println("executing create.sql")
+    _, err = db.Exec(string(f))
+    checkerr.Check(err, "error executing create.sql")
 }
 
 // find the index of a UUID in the family slice
@@ -130,8 +144,24 @@ func index(w http.ResponseWriter, r *http.Request)  {
 }
 
 func main() {
-    initDB()
+    log.Println("gonna init the db now")
+    familyDB, err := sql.Open("mysql", "root:supersecurepassword@tcp(127.0.0.1:3306)/familytree")
+    checkerr.CheckFatal(err, "error connecting to DB")
+    defer familyDB.Close()
 
+    log.Println("reading create.sql")
+    f, err := ioutil.ReadFile("scripts/sql/create.sql")
+    checkerr.Check(err, "error reading create.sql")
+
+    log.Println("executing create.sql")
+    qry := strings.Split(string(f), ";")
+
+    for _, q := range qry {
+        _, err = familyDB.Exec(q)
+        checkerr.Check(err, "error executing create.sql", q)
+    }
+
+    log.Println("starting wwwserver")
     http.HandleFunc("/edit", editPerson)
     http.HandleFunc("/upload", fileSelector)
     http.HandleFunc("/load-family", loadFamily)

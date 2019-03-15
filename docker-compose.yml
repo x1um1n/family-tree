@@ -2,24 +2,25 @@ version: '3.6'
 services:
   app:
     image: "golang"
+    depends_on:
+      - "db"
     network_mode: bridge
     build:
       context: .
       args: []
     ports:
-     - "8080:8080"
+      - "8080:8080"
+    command: "sh -c 'sleep 5 ; /go/src/github.com/x1um1n/family-tree/family-tree'"
   db:
     image: mysql:5.7
     restart: always
     environment:
-      MYSQL_DATABASE: 'family-tree'
-      MYSQL_USER: 'dbuser'
-      MYSQL_PASSWORD: 'dbpassword'
-      MYSQL_ROOT_PASSWORD: 'supersecurepassword'
+      MYSQL_DATABASE: "familytree"
+      MYSQL_ROOT_PASSWORD: "supersecurepassword"
     ports:
-      - '3306:3306'
+      - "3306:3306"
     expose:
-      - '3306'
+      - "3306"
     volumes:
       - family-tree-db:/var/lib/mysql
 volumes:
