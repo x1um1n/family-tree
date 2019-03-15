@@ -1,0 +1,10 @@
+version: '3.6'
+services:
+  app:
+    image: "golang"
+    network_mode: bridge
+    build:
+      context: .
+      args: []
+    ports:
+     - "8080:8080"

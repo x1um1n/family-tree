@@ -3,12 +3,12 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <title>{{.PageTitle}}</title>
-        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" type="text/css" href="styles.css" />
     </head>
     <body>
         <div class="main">
             <p>Upload existing family data:</p>
-            <form action="/load-family" method="post">
+            <form enctype="multipart/form-data" action="/load-family" method="post">
                <input type="file" name="filebox">
                <button type="submit" name="submit">Upload!</button>
             </form>

@@ -3,6 +3,8 @@ package main
 
 import (
     "log"
+    "bytes"
+    "io"
     "net/http"
     "gopkg.in/yaml.v2"
     "io/ioutil"
@@ -12,6 +14,8 @@ import (
 
 type PageVariables struct {
     PageTitle     string
+    Family        []Person
+    Personage     Person
 }
 
 type Person struct {
@@ -30,13 +34,14 @@ type Person struct {
 
 var family []Person
 
-// read yaml from file f and return it marshalled into a []Person
-func loadYaml(f string) (fam []Person) {
-    y, err := ioutil.ReadFile(f)
-    checkerr.CheckFatal(err, "Error reading yaml file", f)
+// find the index of a UUID in the family slice
+func seeker(u string) (idx int) {
+    m := make(map[string]int)
 
-    err = yaml.Unmarshal(y, &fam)
-    checkerr.CheckFatal(err, "Error unmarshalling yaml")
+    for i, p := range family {
+        m[p.UUID] = i
+    }
+    idx = m[u]
 
     return
 }
@@ -67,14 +72,43 @@ func fileSelector(w http.ResponseWriter, r *http.Request)  {
 func loadFamily(w http.ResponseWriter, r *http.Request) {
     r.ParseForm()
 
-    family = loadYaml(r.Form.Get("filebox"))
+    f, h, err := r.FormFile("filebox")
+    checkerr.Check(err, "error opening file", r.Form.Get("filebox"))
+    defer f.Close()
+
+    y, err := h.Open()
+    checkerr.CheckFatal(err, "Error opening file", h.Filename)
+
+    buf := bytes.NewBuffer(nil)
+    if _, err := io.Copy(buf, y); err != nil {
+        checkerr.CheckFatal(err)
+    }
+
+    err = yaml.Unmarshal(buf.Bytes(), &family)
+    checkerr.CheckFatal(err, "Error unmarshalling yaml")
+
     http.Redirect(w, r, "/", http.StatusFound)
+}
+
+// edit family member handler
+func editPerson(w http.ResponseWriter, r *http.Request)  {
+    pv := PageVariables {
+        PageTitle: "Edit person",
+        Personage: family[seeker(r.Form.Get("edit"))],
+    }
+
+    t, err := template.ParseFiles("web/template/edit-person.html")
+    checkerr.Check(err, "edit-person template parsing error")
+
+    err = t.Execute(w, pv)
+    checkerr.Check(err, "edit-person template executing error")
 }
 
 // index page handler
 func index(w http.ResponseWriter, r *http.Request)  {
     pv := PageVariables {
         PageTitle: "Family Tree",
+        Family: family,
     }
 
     t, err := template.ParseFiles("web/template/index.html")
@@ -85,6 +119,7 @@ func index(w http.ResponseWriter, r *http.Request)  {
 }
 
 func main() {
+    http.HandleFunc("/edit", editPerson)
     http.HandleFunc("/upload", fileSelector)
     http.HandleFunc("/load-family", loadFamily)
     http.HandleFunc("/", index)

@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>{{.PageTitle}}</title>
+        <link rel="stylesheet" type="text/css" href="styles.css" />
+    </head>
+    <body>
+        <div class="main">
+            {{with $1:=.Personage}}
+            <p>Editing {{.Name}} - {{.UUID}}</p>
+            <div>
+                <form action="/save-person" method="post">
+                    Preferred Name:<br />
+                    <input type="text" name="name" value="{{.Name}}"><br />
+                    First Name:<br />
+                    <input type="text" name="fnam" value="{{.Fnam}}"><br />
+                    Middle Name(s):<br />
+                    <input type="text" name="mnam" value="{{.Mnam}}"><br />
+                    Surname:<br />
+                    <input type="text" name="snam" value="{{.Snam}}"><br />
+                    Sex:<br />
+                    <input type="text" name="sex" value="{{.Sex}}"><br />
+                    Date of Birth:<br />
+                    <input type="date" name="dob" value="{{.DOB}}"><br />
+                    Date of Death:<br />
+                    <input type="date" name="dod" value="{{.DOD}}"><br />
+                </form>
+            </div>
+            {{end}}
+        </div>
+    </body>
+</html>

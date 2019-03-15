@@ -3,12 +3,49 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <title>{{.PageTitle}}</title>
-        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" type="text/css" href="../static/styles.css" />
     </head>
     <body>
         <div class="main">
             <p>Family Tree Generator</p>
             <a href="/upload">Upload</a>
+            <a href="/save">Save</a>
+        </div>
+        <div class="main">
+            <table width="100%" border="1" frame="void" rules="all" cellspacing="0" cellpadding="5">
+                <tr>
+                    <th>Name</th>
+                    <th>UUID</th>
+                    <th>First Name</th>
+                    <th>Middle Name(s)</th>
+                    <th>Surname</th>
+                    <th>Sex</th>
+                    <th>Born</th>
+                    <th>Died</th>
+                    <th>Children</th>
+                    <th>Parents</th>
+                    <th>Spouse/Partner</th>
+                    <th></th>
+                </tr>
+                {{range .Family}}
+                    <tr>
+                        <td>{{.Name}}</td>
+                        <td>{{.UUID}}</td>
+                        <td>{{.Fnam}}</td>
+                        <td>{{.Mnam}}</td>
+                        <td>{{.Snam}}</td>
+                        <td>{{.Sex}}</td>
+                        <td>{{.DOB}}</td>
+                        <td>{{.DOD}}</td>
+                        <td>{{.Children}}</td>
+                        <td>{{.Parents}}</td>
+                        <td>{{.Spouse}}</td>
+                        <td><form action="/edit" method="post">
+                            <button type="submit" name="edit" value="{{.UUID}}">edit</button> 
+                        </form></td>
+                    </tr>
+                {{end}}
+            </table>
         </div>
     </body>
 </html>
