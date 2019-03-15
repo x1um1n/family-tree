@@ -2,6 +2,7 @@
 package main
 
 import (
+    "github.com/x1um1n/checkerr"
     "log"
     "bytes"
     "io"
@@ -9,7 +10,8 @@ import (
     "gopkg.in/yaml.v2"
     "io/ioutil"
     "html/template"
-    "github.com/x1um1n/checkerr"
+    "database/sql"
+    _ "github.com/go-sql-driver/mysql"
 )
 
 type PageVariables struct {
@@ -33,6 +35,13 @@ type Person struct {
 }
 
 var family []Person
+
+// initialise db
+func initDB()  {
+    db, err := sql.Open("mysql", "dbuser:dbpassword@tcp(127.0.0.1:3306)/test")
+    checkerr.CheckFatal(err, "error connecting to DB")
+    defer db.Close()
+}
 
 // find the index of a UUID in the family slice
 func seeker(u string) (idx int) {
@@ -87,6 +96,8 @@ func loadFamily(w http.ResponseWriter, r *http.Request) {
     err = yaml.Unmarshal(buf.Bytes(), &family)
     checkerr.CheckFatal(err, "Error unmarshalling yaml")
 
+    //fixme: insert into db
+
     http.Redirect(w, r, "/", http.StatusFound)
 }
 
@@ -119,6 +130,8 @@ func index(w http.ResponseWriter, r *http.Request)  {
 }
 
 func main() {
+    initDB()
+
     http.HandleFunc("/edit", editPerson)
     http.HandleFunc("/upload", fileSelector)
     http.HandleFunc("/load-family", loadFamily)

@@ -6,6 +6,7 @@ COPY . .
 ## Get 3rd party golang packages
 RUN go get gopkg.in/yaml.v2
 RUN go get github.com/x1um1n/checkerr
+RUN go get github.com/go-sql-driver/mysql
 
 RUN go build family-tree.go
 

@@ -8,3 +8,19 @@ services:
       args: []
     ports:
      - "8080:8080"
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'family-tree'
+      MYSQL_USER: 'dbuser'
+      MYSQL_PASSWORD: 'dbpassword'
+      MYSQL_ROOT_PASSWORD: 'supersecurepassword'
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - family-tree-db:/var/lib/mysql
+volumes:
+  family-tree-db:
