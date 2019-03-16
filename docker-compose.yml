@@ -8,6 +8,8 @@ services:
     build:
       context: .
       args: []
+    environment:
+      CONNSTR: "root:supersecurepassword@tcp(docker.for.mac.localhost:3306)/familytree"
     ports:
       - "8080:8080"
     command: "sh -c 'sleep 5 ; /go/src/github.com/x1um1n/family-tree/family-tree'"

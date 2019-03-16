@@ -6,6 +6,7 @@ import (
     "log"
     "bytes"
     "strings"
+    "os"
     "io"
     "io/ioutil"
     "net/http"
@@ -145,7 +146,7 @@ func index(w http.ResponseWriter, r *http.Request)  {
 
 func main() {
     log.Println("gonna init the db now")
-    familyDB, err := sql.Open("mysql", "root:supersecurepassword@tcp(127.0.0.1:3306)/familytree")
+    familyDB, err := sql.Open("mysql", os.Getenv("CONNSTR"))
     checkerr.CheckFatal(err, "error connecting to DB")
     defer familyDB.Close()
 
@@ -155,10 +156,12 @@ func main() {
 
     log.Println("executing create.sql")
     qry := strings.Split(string(f), ";")
-
     for _, q := range qry {
-        _, err = familyDB.Exec(q)
-        checkerr.Check(err, "error executing create.sql", q)
+        if len(q) != 0 {
+            log.Println(q)
+            _, err = familyDB.Exec(q)
+            checkerr.Check(err, "error executing create.sql", q)
+        }
     }
 
     log.Println("starting wwwserver")

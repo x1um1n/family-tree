@@ -12,7 +12,7 @@ RUN go build family-tree.go
 
 ##RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo family-tree.go
 
-##FROM archlinux/base as runtime
+##FROM scratch as runtime
 
 ##COPY --from=build go/src/github.com/x1um1n/family-tree/family-tree /usr/local/family-tree/app
 ##COPY --from=build go/src/github.com/x1um1n/family-tree/web /usr/local/family-tree/web

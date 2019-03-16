@@ -1,6 +1,4 @@
-DROP DATABASE IF EXISTS `familytree`;
-CREATE DATABASE `familytree`;
-USE `familytree`;
+DROP TABLE IF EXISTS people;
 CREATE TABLE people (
     `UUID` VARCHAR(128) NOT NULL,
     `Name` VARCHAR(255),
@@ -12,12 +10,14 @@ CREATE TABLE people (
     `DOD` VARCHAR(10),
     PRIMARY KEY (`UUID`)
 );
+DROP TABLE IF EXISTS children;
 CREATE TABLE children (
     `id` INT NOT NULL,
     `parentId` VARCHAR(128) NOT NULL,
     `childId` VARCHAR(128) NOT NULL,
     PRIMARY KEY(`id`)
 );
+DROP TABLE IF EXISTS partners;
 CREATE TABLE partners (
     `id` INT NOT NULL,
     `bitchId` VARCHAR(128) NOT NULL,
