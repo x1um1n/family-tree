@@ -12,14 +12,14 @@ CREATE TABLE people (
 );
 DROP TABLE IF EXISTS children;
 CREATE TABLE children (
-    `id` INT NOT NULL,
+    `id` INT NOT NULL AUTO_INCREMENT,
     `parentId` VARCHAR(128) NOT NULL,
     `childId` VARCHAR(128) NOT NULL,
     PRIMARY KEY(`id`)
 );
 DROP TABLE IF EXISTS partners;
 CREATE TABLE partners (
-    `id` INT NOT NULL,
+    `id` INT NOT NULL AUTO_INCREMENT,
     `bitchId` VARCHAR(128) NOT NULL,
     `butchId` VARCHAR(128) NOT NULL,
     PRIMARY KEY(`id`)

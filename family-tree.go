@@ -56,13 +56,33 @@ func createDB()  {
 
     log.Println("executing create.sql")
     qry := strings.Split(string(f), ";")
+    qry = qry[len(qry)-2:]
     for _, q := range qry {
-        if len(q) != 0 {
-            log.Println(q)
-            _, err = familyDB.Exec(q)
-            checkerr.Check(err, "error executing create.sql", q)
+        log.Println(q)
+        _, err = familyDB.Exec(q)
+        checkerr.Check(err, "error executing create.sql", q)
+    }
+}
+
+// check the DB to see if a marriage is recorded for 2 ID's
+func speakNow(bi, bu string) (b bool) {
+    var qry []string
+    var cnt int
+
+    qry = append(qry, "SELECT count(*) FROM `partners` WHERE `bitchId` = '"+bi+"' AND `butchId` = '"+bu+"'")
+    qry = append(qry, "SELECT count(*) FROM `partners` WHERE `bitchId` = '"+bu+"' AND `butchId` = '"+bi+"'")
+    b = false
+
+    for _, q := range qry {
+        log.Println(q)
+        err := familyDB.QueryRow(q).Scan(&cnt)
+        checkerr.Check(err, "error executing sql", q)
+
+        if cnt >= 1 {
+            b = true
         }
     }
+    return
 }
 
 // find the index of a UUID in the family slice
@@ -121,14 +141,33 @@ func loadFamily(w http.ResponseWriter, r *http.Request) {
     // insert into db
     var qry []string
     for _, p := range family {
-        qry = append(qry, "INSERT INTO `people` (`UUID`,`Name`,`Fnam`,`Mnam`,`Snam`,`Sex`,`DOB`,`DOD`) VALUES ("+p.UUID+","+p.Name+","+p.Fnam+","+p.Mnam+","+p.Snam+","+p.Sex+","+p.DOB+","+p.DOD+")")
+        mnam := ""
+        for _, m := range p.Mnam { // create a ColonSL of middle names
+            mnam = mnam+m+":"
+        }
+        // main people insert
+        qry = append(qry, "INSERT INTO `people` (`UUID`,`Name`,`Fnam`,`Mnam`,`Snam`,`Sex`,`DOB`,`DOD`) "+
+          "VALUES ('"+p.UUID+"','"+p.Name+"','"+p.Fnam+"','"+strings.TrimSuffix(mnam, ":")+"','"+p.Snam+"','"+p.Sex+"','"+p.DOB+"','"+p.DOD+"')")
         if len(p.Children) != 0 {
             for _, c := range p.Children {
-                qry = append(qry, "INSERT INTO `children` (`parentId`,`childId`) VALUES ("+p.UUID+","+c+")")
+                qry = append(qry, "INSERT INTO `children` (`parentId`,`childId`) VALUES ('"+p.UUID+"','"+c+"')")
             }
         }
-        // fixme: parents? check to see if row exists, add if not
-        // fixme: spouse? use the seeker
+        if len(p.Parents) != 0 { // fixme: parents insert check to see if row exists, add if not
+
+        }
+        if p.Spouse != "" { // check if the marriage exists
+            if !speakNow(p.UUID,p.Spouse) {
+                qry = append(qry, "INSERT INTO `partners` (`bitchId`,`butchId`) "+
+                  " VALUES ('"+p.UUID+"','"+p.Spouse+"')")
+            }
+        }
+    }
+    log.Println("starting inserts")
+    for _, q := range qry {
+        log.Println(q)
+        _, err = familyDB.Exec(q)
+        checkerr.Check(err, "error executing sql", q)
     }
 
     http.Redirect(w, r, "/", http.StatusFound)
