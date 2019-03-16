@@ -37,25 +37,32 @@ type Person struct {
 }
 
 var family []Person
-var familyDB sql.DB
+var familyDB *sql.DB
 
 // initialise db
-func initDB(db *sql.DB)  {
+func initDB()  {
+    var err error
+
     log.Println("gonna init the db now")
-    db, err := sql.Open("mysql", "dbuser:dbpassword@tcp(127.0.0.1:3306)/family-tree")
+    familyDB, err = sql.Open("mysql", os.Getenv("CONNSTR"))
     checkerr.CheckFatal(err, "error connecting to DB")
-    defer db.Close()
 }
 
 // create db structure
-func createDB(db *sql.DB)  {
+func createDB()  {
     log.Println("reading create.sql")
     f, err := ioutil.ReadFile("scripts/sql/create.sql")
     checkerr.Check(err, "error reading create.sql")
 
     log.Println("executing create.sql")
-    _, err = db.Exec(string(f))
-    checkerr.Check(err, "error executing create.sql")
+    qry := strings.Split(string(f), ";")
+    for _, q := range qry {
+        if len(q) != 0 {
+            log.Println(q)
+            _, err = familyDB.Exec(q)
+            checkerr.Check(err, "error executing create.sql", q)
+        }
+    }
 }
 
 // find the index of a UUID in the family slice
@@ -111,7 +118,18 @@ func loadFamily(w http.ResponseWriter, r *http.Request) {
     err = yaml.Unmarshal(buf.Bytes(), &family)
     checkerr.CheckFatal(err, "Error unmarshalling yaml")
 
-    //fixme: insert into db
+    // insert into db
+    var qry []string
+    for _, p := range family {
+        qry = append(qry, "INSERT INTO `people` (`UUID`,`Name`,`Fnam`,`Mnam`,`Snam`,`Sex`,`DOB`,`DOD`) VALUES ("+p.UUID+","+p.Name+","+p.Fnam+","+p.Mnam+","+p.Snam+","+p.Sex+","+p.DOB+","+p.DOD+")")
+        if len(p.Children) != 0 {
+            for _, c := range p.Children {
+                qry = append(qry, "INSERT INTO `children` (`parentId`,`childId`) VALUES ("+p.UUID+","+c+")")
+            }
+        }
+        // fixme: parents? check to see if row exists, add if not
+        // fixme: spouse? use the seeker
+    }
 
     http.Redirect(w, r, "/", http.StatusFound)
 }
@@ -145,24 +163,8 @@ func index(w http.ResponseWriter, r *http.Request)  {
 }
 
 func main() {
-    log.Println("gonna init the db now")
-    familyDB, err := sql.Open("mysql", os.Getenv("CONNSTR"))
-    checkerr.CheckFatal(err, "error connecting to DB")
-    defer familyDB.Close()
-
-    log.Println("reading create.sql")
-    f, err := ioutil.ReadFile("scripts/sql/create.sql")
-    checkerr.Check(err, "error reading create.sql")
-
-    log.Println("executing create.sql")
-    qry := strings.Split(string(f), ";")
-    for _, q := range qry {
-        if len(q) != 0 {
-            log.Println(q)
-            _, err = familyDB.Exec(q)
-            checkerr.Check(err, "error executing create.sql", q)
-        }
-    }
+    initDB()
+    createDB()
 
     log.Println("starting wwwserver")
     http.HandleFunc("/edit", editPerson)
