@@ -56,7 +56,7 @@ func createDB()  {
 
     log.Println("executing create.sql")
     qry := strings.Split(string(f), ";")
-    qry = qry[len(qry)-2:]
+    qry = qry[:len(qry)]
     for _, q := range qry {
         log.Println(q)
         _, err = familyDB.Exec(q)

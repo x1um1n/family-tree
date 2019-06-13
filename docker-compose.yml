@@ -12,7 +12,7 @@ services:
       CONNSTR: "root:supersecurepassword@tcp(docker.for.mac.localhost:3306)/familytree"
     ports:
       - "8080:8080"
-    command: "sh -c 'sleep 5 ; /go/src/github.com/x1um1n/family-tree/family-tree'"
+    command: "sh -c 'sleep 10 ; /go/src/github.com/x1um1n/family-tree/family-tree'"
   db:
     image: mysql:5.7
     restart: always
@@ -23,7 +23,7 @@ services:
       - "3306:3306"
     expose:
       - "3306"
-    volumes:
-      - family-tree-db:/var/lib/mysql
-volumes:
-  family-tree-db:
+#    volumes:
+#      - family-tree-db:/var/lib/mysql
+#volumes:
+#  family-tree-db:
